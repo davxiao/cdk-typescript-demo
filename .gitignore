@@ -1,3 +1,15 @@
+*.js
+!jest.config.js
+*.d.ts
+node_modules
+
+# CDK asset staging directory
+.cdk.staging
+cdk.out
+
+# Parcel default cache directory
+.parcel-cache
+
 lib-cov
 *.seed
 *.log
@@ -23,7 +35,6 @@ coverage
 .env
 
 # Dependency directory
-node_modules
 bower_components
 
 # Editors
@@ -39,12 +50,4 @@ dist/**/*
 
 # ignore yarn.lock
 yarn.lock
-
-# Visual Studio 2015 cache/options directory
-.vs/
-
-
-#Exclude tsc generated files
-js/*.map
-js/ts.js
 
