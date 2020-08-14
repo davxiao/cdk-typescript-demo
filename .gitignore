@@ -40,3 +40,11 @@ dist/**/*
 # ignore yarn.lock
 yarn.lock
 
+# Visual Studio 2015 cache/options directory
+.vs/
+
+
+#Exclude tsc generated files
+js/*.map
+js/ts.js
+
