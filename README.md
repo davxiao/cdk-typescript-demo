@@ -7,24 +7,32 @@
 
 ## Pre-requisite
 
-`npm install -g awk-cdk`
+Install cdk toolkit itself.
 
-(optional) Create an empty repo on github and make a local clone, on my case it's called `cdk-typescript-demo`
+```
+npm install -g awk-cdk
+```
 
-Make sure it does not include `README.md`.
+(optional if you want to create a git repo for the code)
 
-Run
+Create an empty repo on github and make a local clone, on my case it's called `cdk-typescript-demo` and make sure it does not include `README.md`
+
+And run
 
 ```bash
 cd cdk-typescript-demo;
 cdk init app --language=typescript
 ```
 
+## Step by Step
+
 For the types of resources we are going to create on this project, we need:
 
+```
 npm install --save @aws-cdk/aws-ec2 @aws-cdk/aws-ecs @aws-cdk/aws-ecs-patterns
+```
 
-Next, add code in `lib/cdk-typescript-demo-stack.ts`
+Next, we will add the following code code in `lib/cdk-typescript-demo-stack.ts`
 
 ```ts
 import ec2 = require('@aws-cdk/aws-ec2');
@@ -53,9 +61,9 @@ export class CdkTypescriptDemoStack extends cdk.Stack {
 
 ```
 
-The reason we specify subnets is because we want to import existing VPC as opppose to creating a new one in this example.
+The reason I specify subnets is because I want to import existing VPC as opppose to creating a new VPC for this example.
 
-When it's done, add the following code in `bin/cdk-typescript-demo.ts`
+When it's done, go add the following code in `bin/cdk-typescript-demo.ts`
 
 ```ts
 const process = require('process');
@@ -69,17 +77,13 @@ new CdkTypescriptDemoStack(app, 'CdkTypescriptDemoStack', {
   });
 ```
 
-When it's done, run the following to deploy the stack:
+Then go deploy the stack:
 
 ```bash
 CDK_DEFAULT_ACCOUNT='your-aws-account-id' CDK_DEFAULT_REGION='your-aws-region' cdk deploy --profile 'your-aws-profile-name'
 ```
 
-When it's done, run the following to see the difference, and you should exepect to see there's no difference:
-
-```bash
- cdk diff --profile sandbox-cdk
-```
+Congrats! Your first cdk deployment is complete!
 
 Now that it has a skeleton ecs cluster deployed with no actual workload, let's go ahead and make a simple container.
 
