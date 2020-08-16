@@ -1,5 +1,7 @@
 # cdk-typescript-demo
 
+Another useful guidance from AWS can be found [here](https://docs.aws.amazon.com/cdk/latest/guide/ecs_example.html)
+
 ## Pre-requisite
 
 `npm install -g awk-cdk`
@@ -30,13 +32,27 @@ export class CdkTypescriptDemoStack extends cdk.Stack {
     super(scope, id, props);
 
     // The code that defines your stack goes here
-    const vpc = ec2.Vpc.fromLookup(this,'dev-us-east-1-vpc',{vpcId: 'vpc-2a8a5f53'});
-    const cluster = new ecs.Cluster(this,'dxiao-cdk-test-ecs-cluster', {vpc: vpc});
+    // Import existing VPC
+    const vpc = ec2.Vpc.fromVpcAttributes(this, 'test-us-east-1-vpc', {
+      vpcId: 'vpc-06e2246f8c824b07f',
+      availabilityZones: ['us-east-1a', 'us-east-1b'],
+      publicSubnetRouteTableIds: ['rtb-0754c0b9a16800a88', 'rtb-0d33917bf17f51c5c'],
+      publicSubnetIds: ['subnet-0fbdf0fe3c1eb197f', 'subnet-005b1272f9d18caf2'],
+      privateSubnetRouteTableIds: ['rtb-04e3bd500ad8e23c4','rtb-0e8346d8fde14f831'],
+      privateSubnetIds: ['subnet-05a41bbb256ade70f', 'subnet-003649e7ae9af838b'],
+    });
+
+    const cluster = new ecs.Cluster(this,'dxiao-cdk-test-ecs-cluster', {
+      vpc: vpc,
+    });
   }
 }
+
 ```
 
-When it's done, add code in `bin/cdk-typescript-demo.ts`
+The reason we specify subnets is because we want to import existing VPC as opppose to creating a new one in this example.
+
+When it's done, add the following code in `bin/cdk-typescript-demo.ts`
 
 ```ts
 const process = require('process');
@@ -53,7 +69,7 @@ new CdkTypescriptDemoStack(app, 'CdkTypescriptDemoStack', {
 When it's done, run the following to deploy the stack:
 
 ```bash
-CDK_DEFAULT_ACCOUNT='your-aws-account-id' CDK_DEFAULT_REGION='your-aws-region' cdk deploy --profile sandbox-cdk
+CDK_DEFAULT_ACCOUNT='your-aws-account-id' CDK_DEFAULT_REGION='your-aws-region' cdk deploy --profile 'your-aws-profile-name'
 ```
 
 When it's done, run the following to see the difference, and you should exepect to see there's no difference:
@@ -64,21 +80,56 @@ When it's done, run the following to see the difference, and you should exepect 
 
 Now that it has a skeleton ecs cluster deployed with no actual workload, let's go ahead and make a simple container.
 
-First, add 
+First, make a new directory `mkdir app`, then create a `Dockerfile`
 
+Then create a simple Typescript file that will respond `Hello world` to `HTTP GET /` request.
 
+Then run `npm install express typescript @types/express --save` to install the necessary libaries.
 
+Next, make sure you have docker installed on the local machine, and test it by `docker build -t "hello-world" .` it should produce a docker image. Then run `docker run -d -p 3000:3000 hello-world:latest` to test the image.
 
+When the docker image is ready, we need to run `cdk bootstrap` once so that it will compile the docker image and upload it to AWS ECR.
 
-This is a blank project for TypeScript development with CDK.
+Finally, we need to add a few lines of code to stand up a ECS Fargate Cluster.
 
-The `cdk.json` file tells the CDK Toolkit how to execute your app.
+```ts
+const fargateService = new ecs_patterns.ApplicationLoadBalancedFargateService(this, 'dxiao-cdk-test-lb-farget', {
+    cluster: cluster,
+    cpu: 512, // Default is 256
+    openListener: false,
+    taskImageOptions: {
+    image: ecs.ContainerImage.fromAsset(__dirname + '/../app'),
+    containerPort: 3000,
+    },
+});
 
-## Useful commands
+const process = require('process');
+fargateService.loadBalancer.connections.allowFrom(
+    ec2.Peer.ipv4(process.env.MY_IP), ec2.Port.tcp(80)
+);
+```
 
- * `npm run build`   compile typescript to js
- * `npm run watch`   watch for changes and compile
- * `npm run test`    perform the jest unit tests
- * `cdk deploy`      deploy this stack to your default AWS account/region
- * `cdk diff`        compare deployed stack with current state
- * `cdk synth`       emits the synthesized CloudFormation template
+To keep the load balancer restrictive, I make `openListener: false,` and make use of an environment variable called `MY_IP` so that only myself will be able to access the LB.
+
+Before we go ahead and deploy the changes, let's run `cdk diff` which will show you the differences between the code and the actual workloads on AWS.
+
+If everything looks good, run `cdk synth` will actully show you the CloudFormation template it compiles for this deployment.
+
+When everything looks good, run the following to deploy everything :<3
+
+```bash
+CDK_DEFAULT_ACCOUNT='your-aws-account-id' CDK_DEFAULT_REGION='your-aws-region' MY_IP='your-public-ip-address/32' cdk --profile 'your-aws-profile-name' deploy --tags Billing='billing-me' --tags Owner='my-name'
+```
+
+Give it a few minutes if everything works well, it will output something like this:
+
+```bash
+'Outputs:
+CdkTypescriptDemoStack.dxiaocdktestlbfargetServiceURL391753FB = http://CdkTy-dxiao-1XYVV05TTDT5-419211149.us-east-1.elb.amazonaws.com
+```
+
+And go ahead and test it!
+
+When you are satified with the test, you can destroy everything by running the last command and replacing `deploy` with `destroy`. 
+
+That's it!

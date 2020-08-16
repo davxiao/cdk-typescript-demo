@@ -1,4 +1,4 @@
-FROM node:10.16.0-alpine
+FROM node:alpine
 
 WORKDIR /app
 COPY . .
@@ -8,4 +8,4 @@ RUN npx tsc
 
 EXPOSE 3000
 
-CMD ["node", "/dist/app.js"]
+CMD ["node", "dist/app.js"]
