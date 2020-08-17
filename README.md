@@ -2,7 +2,7 @@
 
 This demo is written in Typescript, it creates a ECS Fargate cluster in one of your existing VPCs.
 
-Expected time to complete: 15 minutes
+Time to finish: 15 minutes
 
 ## Reference
 
