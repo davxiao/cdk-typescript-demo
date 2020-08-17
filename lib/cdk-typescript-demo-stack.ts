@@ -3,6 +3,8 @@ import ec2 = require('@aws-cdk/aws-ec2');
 import ecs = require('@aws-cdk/aws-ecs');
 import ecs_patterns = require('@aws-cdk/aws-ecs-patterns');
 
+const process = require('process');
+
 export class CdkTypescriptDemoStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
@@ -38,7 +40,6 @@ export class CdkTypescriptDemoStack extends cdk.Stack {
       */
     });
 
-    const process = require('process');
     fargateService.loadBalancer.connections.allowFrom(
       ec2.Peer.ipv4(process.env.MY_IP), ec2.Port.tcp(80)
     );
