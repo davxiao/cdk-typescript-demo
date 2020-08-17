@@ -1,4 +1,6 @@
-# cdk-typescript-demo
+# AWS CDK demo in Typescript
+
+This demo is written in Typescript, it creates a ECS Fargate cluster in one of your existing VPCs.
 
 ## Reference
 
